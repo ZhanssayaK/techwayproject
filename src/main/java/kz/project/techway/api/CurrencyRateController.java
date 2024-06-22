@@ -1,13 +1,11 @@
 package kz.project.techway.api;
 
+import kz.project.techway.dto.CurrencyConvertDTO;
 import kz.project.techway.dto.CurrencyRateDTO;
 import kz.project.techway.service.CurrencyRateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,5 +26,10 @@ public class CurrencyRateController {
     public ResponseEntity<List<CurrencyRateDTO>> getCurrencyHistory(@PathVariable String currencyType, @PathVariable String period) {
         List<CurrencyRateDTO> history = currencyRateService.getCurrencyHistory(currencyType, period);
         return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/convert")
+    public double convertCurrency(@RequestBody CurrencyConvertDTO convertDTO) {
+        return currencyRateService.convertCurrency(convertDTO);
     }
 }

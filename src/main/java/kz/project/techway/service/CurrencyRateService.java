@@ -1,10 +1,13 @@
 package kz.project.techway.service;
 
+import kz.project.techway.dto.CurrencyConvertDTO;
 import kz.project.techway.dto.CurrencyRateDTO;
+import kz.project.techway.entity.ConversionHistory;
 import kz.project.techway.entity.CurrencyRate;
 import kz.project.techway.enums.CurrencyEnum;
 import kz.project.techway.enums.TimePeriodEnum;
 import kz.project.techway.mapper.CurrencyRateMapper;
+import kz.project.techway.repository.ConversionHistoryRepository;
 import kz.project.techway.repository.CurrencyRateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +25,8 @@ import java.util.stream.Collectors;
 public class CurrencyRateService {
 
     private final CurrencyRateRepository currencyRateRepository;
+    private final ConversionHistoryRepository conversionHistoryRepository;
+    private final AuthService authService;
     private final RestTemplate restTemplate;
     private final CurrencyRateMapper currencyRateMapper;
 
@@ -74,6 +80,32 @@ public class CurrencyRateService {
 
         return history.stream()
                 .map(currencyRateMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    public double convertCurrency(CurrencyConvertDTO dto) {
+        double resultAmount;
+        if (dto.getFrom().equalsIgnoreCase("KZT")) {
+            CurrencyRate toRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(dto.getTo());
+            resultAmount= dto.getAmount() / toRate.getValue();
+        } else if (dto.getTo().equalsIgnoreCase("KZT")) {
+            CurrencyRate fromRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(dto.getFrom());
+            resultAmount= dto.getAmount() * fromRate.getValue();
+        } else {
+            CurrencyRate fromRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(dto.getFrom());
+            CurrencyRate toRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(dto.getTo());
+            double amountInKZT = dto.getAmount() * fromRate.getValue();
+            resultAmount= amountInKZT / toRate.getValue();
+        }
+
+        ConversionHistory history = new ConversionHistory();
+        history.setUser(authService.getCurrentUser());
+        history.setFromCurrency(dto.getFrom());
+        history.setToCurrency(dto.getTo());
+        history.setAmount(dto.getAmount());
+        history.setConversionDateTime(LocalDateTime.now());
+        conversionHistoryRepository.save(history);
+
+        return resultAmount;
     }
 }

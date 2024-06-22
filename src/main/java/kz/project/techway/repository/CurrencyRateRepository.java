@@ -10,4 +10,6 @@ public interface CurrencyRateRepository extends JpaRepository<CurrencyRate, Long
     List<CurrencyRate> findByCurrencyAndDateAtBetweenOrderByDateAtDesc(String currency, Timestamp startDate, Timestamp endDate);
 
     boolean existsByCurrencyAndDateAt(String currency, Timestamp dateAt);
+
+    CurrencyRate findFirstByCurrencyOrderByDateAtDesc(String currency);
 }
