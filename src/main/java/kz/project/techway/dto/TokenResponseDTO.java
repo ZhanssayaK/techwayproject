@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class TokenResponseDTO {
     private String accessToken;
     private String refreshToken;
-    // Другие поля, если необходимо
 }

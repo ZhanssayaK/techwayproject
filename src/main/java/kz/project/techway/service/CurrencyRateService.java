@@ -18,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,30 +33,22 @@ public class CurrencyRateService {
     private final CurrencyRepository currencyRepository;
 
     private static final String BANK_API_URL = "https://halykbank.kz/api/exchangerates/";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
     public void updateCurrencyRates() {
-        updateCurrencyRatesForUrl(BANK_API_URL + CurrencyEnum.USD.getCode() + "/" + TimePeriodEnum.WEEK.getPeriod(), CurrencyEnum.USD);
-        updateCurrencyRatesForUrl(BANK_API_URL + CurrencyEnum.EUR.getCode() + "/" + TimePeriodEnum.WEEK.getPeriod(), CurrencyEnum.EUR);
-        updateCurrencyRatesForUrl(BANK_API_URL + CurrencyEnum.RUB.getCode() + "/" + TimePeriodEnum.WEEK.getPeriod(), CurrencyEnum.RUB);
+        for (CurrencyEnum currencyEnum : CurrencyEnum.values()) {
+            updateCurrencyRatesForCurrency(currencyEnum);
+        }
     }
 
-    private void updateCurrencyRatesForUrl(String url, CurrencyEnum currencyEnum) {
+    private void updateCurrencyRatesForCurrency(CurrencyEnum currencyEnum) {
+        String url = BANK_API_URL + currencyEnum.getCode() + "/" + TimePeriodEnum.WEEK.getPeriod();
         CurrencyRateDTO[] response = restTemplate.getForObject(url, CurrencyRateDTO[].class);
+
         if (response != null) {
+            Currency currency = getOrCreateCurrency(currencyEnum);
+
             for (CurrencyRateDTO bankCurrencyRateDTO : response) {
                 LocalDateTime dateAt = bankCurrencyRateDTO.getDateAt();
-
-                Optional<Currency> currencyOpt = currencyRepository.findByCode(currencyEnum.name());
-                Currency currency;
-                if (currencyOpt.isEmpty()) {
-                    currency = new Currency();
-                    currency.setCode(currencyEnum.name());
-                    currencyRepository.save(currency);
-                } else {
-                    currency = currencyOpt.get();
-                }
-
                 if (!currencyRateRepository.existsByCurrencyAndDateAt(currency, dateAt)) {
                     CurrencyRate newCurrencyRate = currencyRateMapper.toEntity(bankCurrencyRateDTO);
                     newCurrencyRate.setDateAt(dateAt);
@@ -68,31 +59,21 @@ public class CurrencyRateService {
         }
     }
 
-
+    private Currency getOrCreateCurrency(CurrencyEnum currencyEnum) {
+        return currencyRepository.findByCode(currencyEnum.name())
+                .orElseGet(() -> {
+                    Currency newCurrency = new Currency();
+                    newCurrency.setCode(currencyEnum.name());
+                    return currencyRepository.save(newCurrency);
+                });
+    }
 
     public List<CurrencyRateDTO> getCurrencyHistory(String currencyType, String period) {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate;
+        LocalDate startDate = calculateStartDate(endDate, period);
 
-        switch (period.toLowerCase()) {
-            case "day":
-                startDate = endDate.minusDays(1);
-                break;
-            case "week":
-                startDate = endDate.minusWeeks(1);
-                break;
-            case "year":
-                startDate = endDate.minusYears(1);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid period: " + period);
-        }
-
-        Optional<Currency> currencyOpt = currencyRepository.findByCode(currencyType.toUpperCase());
-        if (currencyOpt.isEmpty()) {
-            throw new IllegalArgumentException("Invalid currency: " + currencyType);
-        }
-        Currency currency = currencyOpt.get();
+        Currency currency = currencyRepository.findByCode(currencyType.toUpperCase())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + currencyType));
 
         List<CurrencyRate> history = currencyRateRepository.findByCurrencyAndDateAtBetweenOrderByDateAtDesc(
                 currency,
@@ -105,31 +86,46 @@ public class CurrencyRateService {
                 .toList();
     }
 
+    private LocalDate calculateStartDate(LocalDate endDate, String period) {
+        return switch (period.toLowerCase()) {
+            case "day" -> endDate.minusDays(1);
+            case "week" -> endDate.minusWeeks(1);
+            case "year" -> endDate.minusYears(1);
+            default -> throw new IllegalArgumentException("Invalid period: " + period);
+        };
+    }
+
     public double convertCurrency(CurrencyConvertDTO dto) {
-        BigDecimal resultAmount;
         BigDecimal amount = dto.getAmount();
+        CurrencyRate fromRate = getLatestRate(dto.getFrom());
+        CurrencyRate toRate = getLatestRate(dto.getTo());
 
-        if (dto.getFrom().equalsIgnoreCase("KZT")) {
-            CurrencyRate toRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
-                    currencyRepository.findByCode(dto.getTo().toUpperCase()).orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + dto.getTo()))
-            );
-            resultAmount = amount.divide(toRate.getValue(), BigDecimal.ROUND_HALF_UP);
-        } else if (dto.getTo().equalsIgnoreCase("KZT")) {
-            CurrencyRate fromRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
-                    currencyRepository.findByCode(dto.getFrom().toUpperCase()).orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + dto.getFrom()))
-            );
-            resultAmount = amount.multiply(fromRate.getValue());
+        BigDecimal resultAmount = calculateConvertedAmount(dto, amount, fromRate, toRate);
+
+        saveConversionHistory(dto);
+
+        return resultAmount.doubleValue();
+    }
+
+    private CurrencyRate getLatestRate(String currencyCode) {
+        return currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
+                currencyRepository.findByCode(currencyCode.toUpperCase())
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + currencyCode))
+        );
+    }
+
+    private BigDecimal calculateConvertedAmount(CurrencyConvertDTO dto, BigDecimal amount, CurrencyRate fromRate, CurrencyRate toRate) {
+        if ("KZT".equalsIgnoreCase(dto.getFrom())) {
+            return amount.divide(toRate.getValue(), BigDecimal.ROUND_HALF_UP);
+        } else if ("KZT".equalsIgnoreCase(dto.getTo())) {
+            return amount.multiply(fromRate.getValue());
         } else {
-            CurrencyRate fromRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
-                    currencyRepository.findByCode(dto.getFrom().toUpperCase()).orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + dto.getFrom()))
-            );
-            CurrencyRate toRate = currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
-                    currencyRepository.findByCode(dto.getTo().toUpperCase()).orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + dto.getTo()))
-            );
             BigDecimal amountInKZT = amount.multiply(fromRate.getValue());
-            resultAmount = amountInKZT.divide(toRate.getValue(), BigDecimal.ROUND_HALF_UP);
+            return amountInKZT.divide(toRate.getValue(), BigDecimal.ROUND_HALF_UP);
         }
+    }
 
+    private void saveConversionHistory(CurrencyConvertDTO dto) {
         ConversionHistory history = new ConversionHistory();
         history.setUser(authService.getCurrentUser());
         history.setFromCurrency(dto.getFrom());
@@ -137,7 +133,5 @@ public class CurrencyRateService {
         history.setAmount(dto.getAmount());
         history.setConversionDateTime(LocalDateTime.now());
         conversionHistoryRepository.save(history);
-
-        return resultAmount.doubleValue();
     }
 }
