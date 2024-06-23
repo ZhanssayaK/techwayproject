@@ -30,21 +30,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        Iterator<String> it = request.getHeaderNames().asIterator();
-        while (it.hasNext()) {
-            System.out.println(it.next());
+        final String authHeader = request.getHeader("authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        final String authHeader = request.getHeader("authorization");
         final String jwt = authHeader.substring(7);
 
         if (tokenService.isTokenExpired(jwt)) {
             throw new TokenNotFoundException("Token has expired");
         }
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(tokenService.extractUsername(jwt));
 
-        logger.info("this is the servlet path: " + request.getServletPath());
-        logger.info("this is the url: " + request.getRequestURL());
+        UserDetails userDetails = this.userDetailsService.loadUserByUsername(tokenService.extractUsername(jwt));
 
         if (tokenService.get(userDetails.getUsername()) == null) {
             throw new TokenNotFoundException("Token does not exist for the user, login again");
@@ -59,8 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            System.out.println("Null authentication");
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
@@ -72,7 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
-        System.out.println("Continue filter");
         filterChain.doFilter(request, response);
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static kz.project.techway.entity.Role.ADMIN;
+import static kz.project.techway.enums.RoleEnum.ADMIN;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
@@ -23,7 +23,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class WebSecurity {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
 
     private final String[] whiteList = {"/api/v1/auth/**"};
 

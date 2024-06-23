@@ -127,7 +127,6 @@ public class TokenService {
         return true;
     }
 
-
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()

@@ -24,7 +24,6 @@ public class RedisConfig {
   @Value("${redis.port}")
   private int redisPort;
 
-
   @Bean
   public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
     return (builder) -> builder

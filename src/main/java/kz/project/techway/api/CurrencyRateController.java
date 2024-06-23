@@ -16,11 +16,11 @@ public class CurrencyRateController {
 
     private final CurrencyRateService currencyRateService;
 
-//    @GetMapping("/update")
-//    public ResponseEntity<Void> updateCurrencyRates() {
-//        currencyRateService.updateCurrencyRates();
-//        return ResponseEntity.ok().build();
-//    }
+    @GetMapping("/update")
+    public ResponseEntity<Void> updateCurrencyRates() {
+        currencyRateService.updateCurrencyRates();
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/history/{currencyType}/{period}")
     public ResponseEntity<List<CurrencyRateDTO>> getCurrencyHistory(@PathVariable String currencyType, @PathVariable String period) {

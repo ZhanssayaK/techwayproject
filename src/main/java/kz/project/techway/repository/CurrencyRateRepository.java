@@ -1,15 +1,17 @@
 package kz.project.techway.repository;
 
+import kz.project.techway.entity.Currency;
 import kz.project.techway.entity.CurrencyRate;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CurrencyRateRepository extends JpaRepository<CurrencyRate, Long> {
-    List<CurrencyRate> findByCurrencyAndDateAtBetweenOrderByDateAtDesc(String currency, Timestamp startDate, Timestamp endDate);
+    List<CurrencyRate> findByCurrencyAndDateAtBetweenOrderByDateAtDesc(Currency currency, LocalDateTime startDate, LocalDateTime endDate);
 
-    boolean existsByCurrencyAndDateAt(String currency, Timestamp dateAt);
+    boolean existsByCurrencyAndDateAt(Currency currency, LocalDateTime dateAt);
 
-    CurrencyRate findFirstByCurrencyOrderByDateAtDesc(String currency);
+    CurrencyRate findFirstByCurrencyOrderByDateAtDesc(Currency currency);
 }

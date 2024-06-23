@@ -21,8 +21,7 @@ public class ConversionHistoryController {
     @GetMapping()
     public List<ConversionHistory> getConversionHistoryByUser(@RequestParam Long userId,
                                                               @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date fromDate,
-                                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate,
-                                                              @RequestParam(defaultValue = "ASC") Sort.Direction sortDirection) {
+                                                              @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date toDate,@RequestParam(defaultValue = "ASC") Sort.Direction sortDirection) {
         ConversationHistoryDTO dto=ConversationHistoryDTO.builder()
                 .userId(userId)
                 .fromDate(fromDate)

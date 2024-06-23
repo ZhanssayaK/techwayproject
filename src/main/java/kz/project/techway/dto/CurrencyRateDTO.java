@@ -7,17 +7,18 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
 public class CurrencyRateDTO {
-    private Long date;
 
     @JsonProperty("date_at")
-    private Timestamp dateAt;
+    private LocalDateTime dateAt;
 
-    private Double value;
+    private BigDecimal value;
 
-    private String currency;
+    @JsonProperty("currency")
+    private String currencyCode;
 }
