@@ -16,7 +16,7 @@ public class CurrencyRateController {
 
     private final CurrencyRateService currencyRateService;
 
-    @GetMapping("/update")
+    @PostMapping("/update")
     public ResponseEntity<Void> updateCurrencyRates() {
         currencyRateService.updateCurrencyRates();
         return ResponseEntity.ok().build();
@@ -28,8 +28,9 @@ public class CurrencyRateController {
         return ResponseEntity.ok(history);
     }
 
-    @GetMapping("/convert")
-    public double convertCurrency(@RequestBody CurrencyConvertDTO convertDTO) {
-        return currencyRateService.convertCurrency(convertDTO);
+    @PostMapping("/convert")
+    public ResponseEntity<Double> convertCurrency(@RequestBody CurrencyConvertDTO convertDTO) {
+        double result = currencyRateService.convertCurrency(convertDTO);
+        return ResponseEntity.ok(result);
     }
 }
