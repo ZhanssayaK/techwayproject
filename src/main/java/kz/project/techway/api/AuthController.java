@@ -35,18 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) throws TokenNotFoundException {
-        String refreshToken = tokenRequestDTO.getRefreshToken();
-
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new TokenNotFoundException("Refresh token not provided");
-        }
-
-        if (!tokenService.isValidRefreshToken(refreshToken)) {
-            throw new TokenNotFoundException("Invalid refresh token");
-        }
-
-        String newToken = tokenService.refreshToken(refreshToken);
-        return ResponseEntity.ok(new TokenResponseDTO(newToken, refreshToken));
+    public String refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) throws TokenNotFoundException {
+        return authService.refreshToken(tokenRequestDTO.getRefreshToken());
     }
 }

@@ -7,10 +7,8 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import kz.project.techway.dto.Token;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -18,10 +16,9 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TokenService {
     @Value("${application.security.jwt.secret-key}")
@@ -29,35 +26,34 @@ public class TokenService {
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
-    private final RedisTemplate redisTemplate;
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long tokenExpiration;
 
-    private final CacheManager cacheManager;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    Logger logger = Logger.getLogger(AuthService.class.getName());
-
-    @CachePut(key = "#userName", value = "tokenCache")
     public String save(String userName, String token) {
+        redisTemplate.opsForValue().set(userName, token);
         return token;
     }
 
     public String get(String userName) {
         try {
-            return cacheManager.getCache("tokenCache").get(userName).toString();
+            return (String) redisTemplate.opsForValue().get(userName);
         } catch (NullPointerException e){
-            logger.log(Level.SEVERE, "token not found for username: " + userName);
+            log.error("token not found for username: " + userName);
             return null;
         }
     }
 
-    public Token getRefreshToken(String refreshToken) {
-        return (Token) redisTemplate.opsForValue().get(refreshToken);
+    public Token getRefreshToken(String accessToken) {
+        return (Token) redisTemplate.opsForValue().get(accessToken);
     }
 
     public void evictSingleCacheValue(String cacheName, String cacheKey) {
         try {
-            cacheManager.getCache(cacheName).evict(cacheKey);
-        } catch(NullPointerException e) {
-            logger.info("Cache name key " + cacheKey + "not found for cache name " + cacheName);
+            redisTemplate.delete(cacheKey);
+        } catch (Exception e) {
+            log.info("Cache key " + cacheKey + " not found or failed to delete");
         }
     }
 
@@ -99,7 +95,7 @@ public class TokenService {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -108,13 +104,11 @@ public class TokenService {
         final Claims claims = extractAllClaims(token);
         Date expiration = claims.getExpiration();
         Date now = new Date();
-        // Определяем, нужно ли обновлять токен на основе текущей даты и времени
         return expiration != null && now.after(expiration);
     }
 
     public boolean isValidRefreshToken(String refreshToken) {
-        // Получаем информацию о токене из кэша или базы данных
-        Token cachedToken = cacheManager.getCache("refreshTokenCache").get(refreshToken, Token.class);
+        Token cachedToken = (Token) redisTemplate.opsForValue().get(refreshToken);
 
         if (cachedToken == null) {
             return false;

@@ -6,22 +6,23 @@ import kz.project.techway.entity.User;
 import kz.project.techway.exceptions.UserNotFound;
 import kz.project.techway.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Optional;
-import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final RedisService redisService;
 
-    Logger logger = Logger.getLogger(AuthService.class.getName());
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long tokenExpiration;
 
     public RegisterDTO register(RegisterRequest req) {
         User user = User.builder()
@@ -32,30 +33,28 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        String token = tokenService.buildToken(savedUser);
+        String token = saveToken(savedUser);
+        String refreshToken=tokenService.refreshToken(token);
 
-        tokenService.save(
-                savedUser.getUsername(),
-                Token.builder()
-                        .creationDate(new Date())
-                        .isValid(true)
-                        .jwtExpiration(tokenService.extractExpiration(token))
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .value(token)
-                        .build()
-                        .toString()
-        );
-        return new RegisterDTO(token);
+        redisService.saveRefreshToken(user.getUsername(), refreshToken, tokenExpiration);
+        Date expirationDate=tokenService.extractExpiration(token);
+
+        return new RegisterDTO(token,refreshToken,expirationDate);
     }
 
     public LoginDTO login(LoginRequest req) throws UserNotFound {
-        Optional<User> userQuery = this.userRepository.findByUsername(req.getUsername());
-        if (userQuery.isEmpty()) {
-            throw new UserNotFound("User not found");
-        }
+        return userRepository.findByUsername(req.getUsername())
+                .map(user -> {
+                    String token = saveToken(user);
+                    String refreshToken = tokenService.refreshToken(token);
+                    redisService.saveRefreshToken(user.getUsername(), refreshToken, tokenExpiration);
+                    Date expirationDate=tokenService.extractExpiration(token);
+                    return new LoginDTO(token, refreshToken,expirationDate);
+                })
+                .orElseThrow(() -> new UserNotFound("User not found"));
+    }
 
-        User user = userQuery.get();
+    private String saveToken(User user) {
         String token = tokenService.buildToken(user);
         tokenService.save(
                 user.getUsername(),
@@ -69,7 +68,7 @@ public class AuthService {
                         .build()
                         .toString()
         );
-        return new LoginDTO(token);
+        return token;
     }
 
     public void logout(HttpServletRequest request) {
@@ -87,5 +86,11 @@ public class AuthService {
             return (User) authentication.getPrincipal();
         }
         return null;
+    }
+
+    public String refreshToken(String refreshToken){
+        String username=tokenService.extractUsername(refreshToken);
+        User user=userRepository.findByUsername(username).orElseThrow(()-> new UserNotFound("User not found"));
+        return saveToken(user);
     }
 }

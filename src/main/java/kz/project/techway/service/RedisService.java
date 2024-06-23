@@ -3,6 +3,8 @@ package kz.project.techway.service;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class RedisService {
 
@@ -10,6 +12,18 @@ public class RedisService {
 
     public RedisService(StringRedisTemplate template) {
         this.template = template;
+    }
+
+    public void saveRefreshToken(String username, String refreshToken, long expirationTime) {
+        template.opsForValue().set(username, refreshToken, expirationTime, TimeUnit.MILLISECONDS);
+    }
+
+    public String getRefreshToken(String username) {
+        return template.opsForValue().get(username);
+    }
+
+    public void deleteRefreshToken(String username) {
+        template.delete(username);
     }
 
     public void testConnection() {
