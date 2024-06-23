@@ -13,6 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class ConversationHistoryDTO {
+
     private Long userId;
     private Date fromDate;
     private Date toDate;

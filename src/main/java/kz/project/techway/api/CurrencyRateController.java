@@ -16,7 +16,7 @@ public class CurrencyRateController {
 
     private final CurrencyRateService currencyRateService;
 
-    @PostMapping("/update")
+    @GetMapping("/update")
     public ResponseEntity<Void> updateCurrencyRates() {
         currencyRateService.updateCurrencyRates();
         return ResponseEntity.ok().build();

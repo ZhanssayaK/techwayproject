@@ -10,9 +10,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CurrencyConvertDTO {
+
     private BigDecimal amount;
-
     private String from;
-
     private String to;
 }

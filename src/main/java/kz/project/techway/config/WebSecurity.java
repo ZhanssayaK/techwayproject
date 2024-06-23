@@ -21,6 +21,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class WebSecurity {
+
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -30,16 +31,13 @@ public class WebSecurity {
     public SecurityFilterChain securityFilterChain(@NotNull HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req.requestMatchers(whiteList).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/**")
-                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user-management/**").hasAnyRole(ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
-                )
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
-
     }
 }

@@ -16,13 +16,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final TokenService tokenService;
     private final UserDetailsService userDetailsService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (request.getServletPath().contains("/api/v1/auth")) {
@@ -30,41 +31,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String authHeader = request.getHeader("authorization");
+        final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         final String jwt = authHeader.substring(7);
-
         if (tokenService.isTokenExpired(jwt)) {
             throw new TokenNotFoundException("Token has expired");
         }
 
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(tokenService.extractUsername(jwt));
-
-        if (tokenService.get(userDetails.getUsername()) == null) {
+        String username = tokenService.extractUsername(jwt);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (tokenService.get(username) == null) {
             throw new TokenNotFoundException("Token does not exist for the user, login again");
         }
 
         if (tokenService.isTokenNeedsRefresh(jwt)) {
             String newToken = tokenService.refreshToken(jwt);
-            // Update token in cache
-            tokenService.save(userDetails.getUsername(), newToken);
-            // Update token in response header
+            tokenService.save(username, newToken);
             response.setHeader("Authorization", "Bearer " + newToken);
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-            );
-            authToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
+                    userDetails, null, userDetails.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
