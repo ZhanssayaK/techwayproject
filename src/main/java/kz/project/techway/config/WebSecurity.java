@@ -32,6 +32,7 @@ public class WebSecurity {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req.requestMatchers(whiteList).permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user-management/**").hasAnyRole(ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

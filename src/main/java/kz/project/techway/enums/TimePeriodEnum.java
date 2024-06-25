@@ -4,14 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum TimePeriodEnum {
+    DAY("day"),
     WEEK("week"),
     MONTH("month"),
     YEAR("year");
 
-    private final String period;
+    public final String period;
 
     TimePeriodEnum(String period) {
         this.period = period;
     }
-
 }

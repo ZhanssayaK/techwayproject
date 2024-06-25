@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static kz.project.techway.util.BankConstants.BANK_API_URL;
+
+//@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrencyRateService {
@@ -31,8 +34,6 @@ public class CurrencyRateService {
     private final RestTemplate restTemplate;
     private final CurrencyRateMapper currencyRateMapper;
     private final CurrencyRepository currencyRepository;
-
-    private static final String BANK_API_URL = "https://halykbank.kz/api/exchangerates/";
 
     public void updateCurrencyRates() {
         for (CurrencyEnum currencyEnum : CurrencyEnum.values()) {
@@ -54,6 +55,7 @@ public class CurrencyRateService {
                     newCurrencyRate.setDateAt(dateAt);
                     newCurrencyRate.setCurrency(currency);
                     currencyRateRepository.save(newCurrencyRate);
+//                    log.info("currency {} was saved",currency);
                 }
             }
         }
@@ -70,7 +72,15 @@ public class CurrencyRateService {
 
     public List<CurrencyRateDTO> getCurrencyHistory(String currencyType, String period) {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = calculateStartDate(endDate, period);
+        TimePeriodEnum timePeriodEnum;
+
+        try {
+            timePeriodEnum = TimePeriodEnum.valueOf(period.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid period: " + period, e);
+        }
+
+        LocalDate startDate = calculateStartDate(endDate, timePeriodEnum);
 
         Currency currency = currencyRepository.findByCode(currencyType.toUpperCase())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid currency: " + currencyType));
@@ -86,11 +96,13 @@ public class CurrencyRateService {
                 .toList();
     }
 
-    private LocalDate calculateStartDate(LocalDate endDate, String period) {
-        return switch (period.toLowerCase()) {
-            case "day" -> endDate.minusDays(1);
-            case "week" -> endDate.minusWeeks(1);
-            case "year" -> endDate.minusYears(1);
+
+    private LocalDate calculateStartDate(LocalDate endDate, TimePeriodEnum period) {
+        return switch (period) {
+            case DAY -> endDate.minusDays(1);
+            case WEEK -> endDate.minusWeeks(1);
+            case MONTH -> endDate.minusMonths(1);
+            case YEAR -> endDate.minusYears(1);
             default -> throw new IllegalArgumentException("Invalid period: " + period);
         };
     }

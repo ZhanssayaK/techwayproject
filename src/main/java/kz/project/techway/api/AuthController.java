@@ -5,9 +5,7 @@ import kz.project.techway.dto.*;
 import kz.project.techway.exceptions.TokenNotFoundException;
 import kz.project.techway.exceptions.UserNotFound;
 import kz.project.techway.service.AuthService;
-import kz.project.techway.service.TokenService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,24 +14,24 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final TokenService tokenService;
+//    private final TokenService tokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.ok(authService.register(registerRequest));
+    public RegisterDTO register(@RequestBody RegisterRequest registerRequest) {
+        return authService.register(registerRequest);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) throws UserNotFound {
-        return ResponseEntity.ok(authService.login(loginRequest));
+    public LoginDTO login(@RequestBody LoginRequest loginRequest) throws UserNotFound {
+        return authService.login(loginRequest);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
+    public void logout(HttpServletRequest request) {
         authService.logout(request);
-        return ResponseEntity.noContent().build();
     }
 
+    //DTO?
     @PostMapping("/refresh")
     public String refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) throws TokenNotFoundException {
         return authService.refreshToken(tokenRequestDTO.getRefreshToken());

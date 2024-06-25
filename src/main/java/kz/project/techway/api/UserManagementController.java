@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/user-management")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN')")
 @RequiredArgsConstructor
 public class UserManagementController {
 

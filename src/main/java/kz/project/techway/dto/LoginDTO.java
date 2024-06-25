@@ -19,5 +19,4 @@ public class LoginDTO {
   private String refreshToken;
   @JsonProperty("expiration_date")
   private Date expirationDate;
-
 }
