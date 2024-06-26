@@ -1,6 +1,7 @@
 package kz.project.techway.api;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import kz.project.techway.dto.*;
 import kz.project.techway.exceptions.TokenNotFoundException;
 import kz.project.techway.exceptions.UserNotFound;
@@ -16,7 +17,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public RegisterDTO register(@RequestBody RegisterRequest registerRequest) {
+    public RegisterDTO register(@Valid @RequestBody RegisterRequest registerRequest) {
         return authService.register(registerRequest);
     }
 

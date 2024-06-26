@@ -1,8 +1,11 @@
 package kz.project.techway.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import kz.project.techway.dto.*;
 import kz.project.techway.entity.User;
+import kz.project.techway.enums.RoleEnum;
+import kz.project.techway.exceptions.UserExistsException;
 import kz.project.techway.exceptions.UserNotFound;
 import kz.project.techway.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +40,7 @@ public class AuthService {
         User user = User.builder()
                 .username(req.getUsername())
                 .email(req.getEmail())
-                .role(req.getRole())
+                .role(RoleEnum.USER)  // Устанавливаем роль пользователя по умолчанию
                 .password(encodedPassword)
                 .build();
 
