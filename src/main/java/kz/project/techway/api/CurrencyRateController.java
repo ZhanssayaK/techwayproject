@@ -27,7 +27,6 @@ public class CurrencyRateController {
 
     @PostMapping("/convert")
     public Double convertCurrency(@RequestBody CurrencyConvertDTO convertDTO) {
-        double result = currencyRateService.convertCurrency(convertDTO);
-        return result;
+        return currencyRateService.convertCurrency(convertDTO);
     }
 }

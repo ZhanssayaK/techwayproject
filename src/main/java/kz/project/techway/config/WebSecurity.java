@@ -33,6 +33,7 @@ public class WebSecurity {
                 .authorizeHttpRequests(req -> req.requestMatchers(whiteList).permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
+//                        .anyRequest().authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user-management/**").hasAnyRole(ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

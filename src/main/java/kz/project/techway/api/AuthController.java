@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-//    private final TokenService tokenService;
 
     @PostMapping("/register")
     public RegisterDTO register(@RequestBody RegisterRequest registerRequest) {
@@ -31,7 +30,6 @@ public class AuthController {
         authService.logout(request);
     }
 
-    //DTO?
     @PostMapping("/refresh")
     public String refreshToken(@RequestBody TokenRequestDTO tokenRequestDTO) throws TokenNotFoundException {
         return authService.refreshToken(tokenRequestDTO.getRefreshToken());
