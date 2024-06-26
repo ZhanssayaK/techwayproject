@@ -21,8 +21,10 @@ import java.util.function.Function;
 @Slf4j
 @RequiredArgsConstructor
 public class TokenService {
+
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
+
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
@@ -43,10 +45,6 @@ public class TokenService {
             log.error("token not found for username: " + userName);
             return null;
         }
-    }
-
-    public Token getRefreshToken(String accessToken) {
-        return (Token) redisTemplate.opsForValue().get(accessToken);
     }
 
     public void evictSingleCacheValue(String cacheName, String cacheKey) {
@@ -107,19 +105,6 @@ public class TokenService {
         return expiration != null && now.after(expiration);
     }
 
-    public boolean isValidRefreshToken(String refreshToken) {
-        Token cachedToken = (Token) redisTemplate.opsForValue().get(refreshToken);
-
-        if (cachedToken == null) {
-            return false;
-        }
-
-        if (cachedToken.getJwtExpiration().before(new Date())) {
-            return false;
-        }
-
-        return true;
-    }
 
     private Claims extractAllClaims(String token) {
         return Jwts

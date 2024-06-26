@@ -14,10 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Currency extends BaseEntity{
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
-//    private UUID id;
-
     @Column(nullable = false, unique = true)
     private String code;
 

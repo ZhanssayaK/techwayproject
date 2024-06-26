@@ -17,18 +17,4 @@ public class RedisService {
     public void saveRefreshToken(String username, String refreshToken, long expirationTime) {
         template.opsForValue().set(username, refreshToken, expirationTime, TimeUnit.MILLISECONDS);
     }
-
-    public String getRefreshToken(String username) {
-        return template.opsForValue().get(username);
-    }
-
-    public void deleteRefreshToken(String username) {
-        template.delete(username);
-    }
-
-    public void testConnection() {
-        template.opsForValue().set("testKey", "testValue");
-        String value = template.opsForValue().get("testKey");
-        System.out.println("Value from Redis: " + value);
-    }
 }

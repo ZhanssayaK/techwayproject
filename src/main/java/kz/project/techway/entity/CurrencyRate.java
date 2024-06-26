@@ -16,10 +16,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CurrencyRate extends BaseEntity{
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
-//    private UUID id;
-
     @Column(nullable = false)
     private LocalDateTime dateAt;
 

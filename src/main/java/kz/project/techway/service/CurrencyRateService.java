@@ -19,11 +19,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static kz.project.techway.util.BankConstants.BANK_API_URL;
+import static kz.project.techway.util.HalykBankApiUrl.BANK_API_URL;
 
-//@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CurrencyRateService {
