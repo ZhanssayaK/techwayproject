@@ -5,9 +5,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Getter
-@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "User not found")
-public class UserNotFound extends RuntimeException {
-    public UserNotFound(String message) {
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "User is exists")
+public class InvalidPeriodException extends RuntimeException {
+    public InvalidPeriodException(String message) {
         super(message);
     }
 }

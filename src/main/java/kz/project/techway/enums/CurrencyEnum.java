@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum CurrencyEnum {
     USD("USD"),
     EUR("EUR"),
-    RUB("RUB");
+    RUB("RUB"),
+    KZT("KZT");
     private final String code;
 
     CurrencyEnum(String code) {

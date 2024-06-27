@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import kz.project.techway.dto.ConversationHistoryDTO;
+import kz.project.techway.dto.input.ConversationHistoryDTO;
 import kz.project.techway.entity.ConversionHistory;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.domain.Sort;

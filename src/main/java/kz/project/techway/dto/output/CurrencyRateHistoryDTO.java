@@ -1,4 +1,4 @@
-package kz.project.techway.dto;
+package kz.project.techway.dto.output;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-public class CurrencyRateDTO {
-
+public class CurrencyRateHistoryDTO {
     @JsonProperty("date_at")
     private LocalDateTime dateAt;
+
     private BigDecimal value;
+
     @JsonProperty("currency")
     private String currencyCode;
 }

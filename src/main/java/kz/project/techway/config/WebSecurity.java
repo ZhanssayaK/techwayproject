@@ -21,11 +21,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class WebSecurity {
-
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    private final String[] whiteList = {"/api/v1/auth/**"};
+    private final String[] whiteList = {"/api/auth/**"};
 
     @Bean
     public SecurityFilterChain securityFilterChain(@NotNull HttpSecurity httpSecurity) throws Exception {
@@ -34,8 +32,8 @@ public class WebSecurity {
                         .requestMatchers(HttpMethod.GET, "/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
 //                        .anyRequest().authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/user-management/**").hasAnyRole(ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll())
+                        .requestMatchers(HttpMethod.GET, "/api/user-management/**").hasAnyRole(ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

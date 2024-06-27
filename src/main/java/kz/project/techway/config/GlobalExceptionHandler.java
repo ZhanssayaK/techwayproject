@@ -1,7 +1,8 @@
 package kz.project.techway.config;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolationException;
-import kz.project.techway.dto.ErrorResponse;
+import kz.project.techway.dto.output.ErrorResponse;
 import kz.project.techway.exceptions.ExternalApiException;
 import kz.project.techway.exceptions.TokenNotFoundException;
 import kz.project.techway.exceptions.UserNotFound;
@@ -10,22 +11,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.naming.AuthenticationException;
-import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(ExpiredJwtException ex) {
+        ErrorResponse response = new ErrorResponse("Token Error", "Token has expired");
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(TokenNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTokenNotFoundException(TokenNotFoundException ex) {
         ErrorResponse response = new ErrorResponse("Token Error", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ExternalApiException.class)
@@ -65,11 +71,11 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse("Authentication Error", "You need to be authenticated to access this resource");
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        ErrorResponse response = new ErrorResponse("Access Denied", "You do not have permission to access this resource");
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
+//    @ExceptionHandler(AccessDeniedException.class)
+//    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+//        ErrorResponse response = new ErrorResponse("Access Denied", "You do not have permission to access this resource");
+//        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {

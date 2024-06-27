@@ -1,6 +1,6 @@
 package kz.project.techway.mapper;
 
-import kz.project.techway.dto.CurrencyRateDTO;
+import kz.project.techway.dto.output.CurrencyRateHistoryDTO;
 import kz.project.techway.entity.CurrencyRate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -11,10 +11,10 @@ import java.util.List;
 public interface CurrencyRateMapper {
 
     @Mapping(source = "currency.code", target = "currencyCode")
-    CurrencyRateDTO toDto(CurrencyRate currencyRate);
+    CurrencyRateHistoryDTO toDto(CurrencyRate currencyRate);
 
     @Mapping(source = "currencyCode", target = "currency.code")
-    CurrencyRate toEntity(CurrencyRateDTO currencyRateDTO);
+    CurrencyRate toEntity(CurrencyRateHistoryDTO currencyRateHistoryDTO);
 
-    List<CurrencyRateDTO> toDtoList(List<CurrencyRate> currencyRateList);
+    List<CurrencyRateHistoryDTO> toDtoList(List<CurrencyRate> currencyRateList);
 }

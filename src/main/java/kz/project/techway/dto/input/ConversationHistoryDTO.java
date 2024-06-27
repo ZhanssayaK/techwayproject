@@ -1,19 +1,16 @@
-package kz.project.techway.dto;
+package kz.project.techway.dto.input;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.domain.Sort;
 
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
 public class ConversationHistoryDTO {
-
     private Long userId;
     private Date fromDate;
     private Date toDate;
