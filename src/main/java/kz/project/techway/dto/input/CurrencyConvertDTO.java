@@ -13,8 +13,8 @@ public class CurrencyConvertDTO {
     private BigDecimal amount;
 
     @NotBlank(message = "Currency from cannot be blank")
-    private String from;
+    private CurrencyDTO from;
 
     @NotBlank(message = "Currency to cannot be blank")
-    private String to;
+    private CurrencyDTO to;
 }

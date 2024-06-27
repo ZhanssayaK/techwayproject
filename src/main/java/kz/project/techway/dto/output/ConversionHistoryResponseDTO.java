@@ -1,5 +1,6 @@
 package kz.project.techway.dto.output;
 
+import kz.project.techway.dto.input.CurrencyDTO;
 import kz.project.techway.entity.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,9 +13,9 @@ import java.time.LocalDateTime;
 @Setter
 @Builder
 public class ConversionHistoryResponseDTO {
-    private User user;
-    private String fromCurrency;
-    private String toCurrency;
+    private Long userId;
+    private CurrencyDTO fromCurrency;
+    private CurrencyDTO toCurrency;
     private BigDecimal amount;
     private LocalDateTime conversionDateTime;
 }

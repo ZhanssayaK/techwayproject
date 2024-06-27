@@ -19,11 +19,13 @@ public class ConversionHistory extends BaseEntity{
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "from_currency", nullable = false, length = 3)
-    private String fromCurrency;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_currency", nullable = false)
+    private Currency fromCurrency;
 
-    @Column(name = "to_currency", nullable = false, length = 3)
-    private String toCurrency;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_currency", nullable = false)
+    private Currency toCurrency;
 
     @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;

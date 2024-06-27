@@ -4,6 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolationException;
 import kz.project.techway.dto.output.ErrorResponse;
 import kz.project.techway.exceptions.ExternalApiException;
+import kz.project.techway.exceptions.PasswordsDoNotMatchException;
 import kz.project.techway.exceptions.TokenNotFoundException;
 import kz.project.techway.exceptions.UserNotFound;
 import org.springframework.http.HttpStatus;
@@ -71,11 +72,6 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse("Authentication Error", "You need to be authenticated to access this resource");
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-//        ErrorResponse response = new ErrorResponse("Access Denied", "You do not have permission to access this resource");
-//        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
@@ -87,5 +83,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
         ErrorResponse response = new ErrorResponse("Bad Credentials", "Invalid username or password");
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(PasswordsDoNotMatchException.class)
+    public ResponseEntity<String> handlePasswordsDoNotMatchException(PasswordsDoNotMatchException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

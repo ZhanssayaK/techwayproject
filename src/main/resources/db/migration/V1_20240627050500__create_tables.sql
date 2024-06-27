@@ -31,9 +31,11 @@ CREATE TABLE conversion_history (
                                     created_date TIMESTAMP NOT NULL,
                                     updated_date TIMESTAMP,
                                     user_id BIGINT NOT NULL,
-                                    from_currency VARCHAR(3) NOT NULL,
-                                    to_currency VARCHAR(3) NOT NULL,
+                                    from_currency UUID NOT NULL,
+                                    to_currency UUID NOT NULL,
                                     amount DECIMAL(19, 4) NOT NULL,
                                     conversion_date_time TIMESTAMP NOT NULL,
-                                    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id)
+                                    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id),
+                                    CONSTRAINT fk_from_currency FOREIGN KEY (from_currency) REFERENCES currency (id),
+                                    CONSTRAINT fk_to_currency FOREIGN KEY (to_currency) REFERENCES currency (id)
 );

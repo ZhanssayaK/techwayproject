@@ -6,6 +6,7 @@ import kz.project.techway.dto.input.RegisterRequestDTO;
 import kz.project.techway.dto.output.AuthDTO;
 import kz.project.techway.entity.User;
 import kz.project.techway.enums.RoleEnum;
+import kz.project.techway.exceptions.PasswordsDoNotMatchException;
 import kz.project.techway.exceptions.UserExistsException;
 import kz.project.techway.exceptions.UserNotFound;
 import kz.project.techway.mapper.RegisterMapper;
@@ -43,11 +44,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthDTO register(RegisterRequestDTO request) {
+        if (!request.getPassword().equals(request.getRetypePassword())) {
+            throw new PasswordsDoNotMatchException("Passwords do not match.");
+        }
+
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .role(RoleEnum.USER)  // Устанавливаем роль пользователя по умолчанию
+                .role(RoleEnum.USER)
                 .password(request.getPassword())
                 .build();
 
@@ -55,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingUser.isPresent()) {
             throw new UserExistsException("Username " + user.getUsername() + " already exists.");
         }
-        user.setRole(RoleEnum.USER);
+
         User savedUser = userRepository.save(user);
 
         String accessToken = tokenService.generateAndSaveToken(savedUser);
@@ -70,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
                 .expirationDate(expirationDate)
                 .build();
     }
+
 
     @Override
     public AuthDTO login(LoginRequestDTO req) {

@@ -1,6 +1,7 @@
 package kz.project.techway.service.impl;
 
 import kz.project.techway.dto.input.CurrencyConvertDTO;
+import kz.project.techway.dto.input.CurrencyDTO;
 import kz.project.techway.dto.output.CurrencyRateHistoryDTO;
 import kz.project.techway.entity.ConversionHistory;
 import kz.project.techway.entity.Currency;
@@ -9,6 +10,8 @@ import kz.project.techway.enums.CurrencyEnum;
 import kz.project.techway.enums.TimePeriodEnum;
 import kz.project.techway.exceptions.InvalidCurrencyException;
 import kz.project.techway.exceptions.InvalidPeriodException;
+import kz.project.techway.mapper.ConversionHistoryMapper;
+import kz.project.techway.mapper.CurrencyMapper;
 import kz.project.techway.mapper.CurrencyRateMapper;
 import kz.project.techway.repository.ConversionHistoryRepository;
 import kz.project.techway.repository.CurrencyRateRepository;
@@ -46,6 +49,8 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
     private final RestTemplate restTemplate;
     private final CurrencyRateMapper currencyRateMapper;
     private final CurrencyRepository currencyRepository;
+    private final ConversionHistoryMapper conversionHistoryMapper;
+    private final CurrencyMapper currencyMapper;
 
     @Override
     public void updateCurrencyRates() {
@@ -136,17 +141,17 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
         return resultAmount;
     }
 
-    private CurrencyRate getLatestRate(String currencyCode) {
+    private CurrencyRate getLatestRate(CurrencyDTO currencyCode) {
         return currencyRateRepository.findFirstByCurrencyOrderByDateAtDesc(
-                currencyRepository.findByCode(currencyCode.toUpperCase())
+                currencyRepository.findByCode(currencyCode.getCode().toUpperCase())
                         .orElseThrow(() -> new InvalidCurrencyException("Invalid currency: " + currencyCode))
         );
     }
 
     private BigDecimal calculateConvertedAmount(CurrencyConvertDTO dto, BigDecimal amount, CurrencyRate fromRate, CurrencyRate toRate) {
-        if (KZT.getCode().equalsIgnoreCase(dto.getFrom())) {
+        if (KZT.getCode().equalsIgnoreCase(dto.getFrom().getCode())) {
             return amount.divide(toRate.getValue(), RoundingMode.HALF_UP);
-        } else if (KZT.getCode().equalsIgnoreCase(dto.getTo())) {
+        } else if (KZT.getCode().equalsIgnoreCase(dto.getTo().getCode())) {
             return amount.multiply(fromRate.getValue());
         } else {
             BigDecimal amountInKZT = amount.multiply(fromRate.getValue());
@@ -155,12 +160,26 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
     }
 
     private void saveConversionHistory(CurrencyConvertDTO dto) {
+        Currency fromCurrency = findOrCreateCurrency(dto.getFrom().getCode());
+        Currency toCurrency = findOrCreateCurrency(dto.getTo().getCode());
+
         ConversionHistory history = new ConversionHistory();
         history.setUser(authService.getCurrentUser());
-        history.setFromCurrency(dto.getFrom());
-        history.setToCurrency(dto.getTo());
+        history.setFromCurrency(fromCurrency);
+        history.setToCurrency(toCurrency);
         history.setAmount(dto.getAmount());
         history.setConversionDateTime(LocalDateTime.now());
+
         conversionHistoryRepository.save(history);
     }
+
+    private Currency findOrCreateCurrency(String code) {
+        return currencyRepository.findByCode(code.toUpperCase())
+                .orElseGet(() -> {
+                    Currency newCurrency = new Currency();
+                    newCurrency.setCode(code.toUpperCase());
+                    return currencyRepository.save(newCurrency);
+                });
+    }
+
 }

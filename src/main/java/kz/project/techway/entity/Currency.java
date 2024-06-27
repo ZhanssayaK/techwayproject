@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Currency extends BaseEntity{
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "code", nullable = false, length = 10)
     private String code;
 
     @OneToMany(mappedBy = "currency", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
