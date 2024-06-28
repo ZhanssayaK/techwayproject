@@ -11,5 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ErrorResponse {
     private String error;
+    //Details?
     private String message;
 }

@@ -23,6 +23,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class WebSecurity {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final String[] whiteList = {"/api/auth/**"};
 
     @Bean
@@ -31,9 +32,9 @@ public class WebSecurity {
                 .authorizeHttpRequests(req -> req.requestMatchers(whiteList).permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/**").authenticated()
-//                        .anyRequest().authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/user-management/**").hasAnyRole(ADMIN.name())
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

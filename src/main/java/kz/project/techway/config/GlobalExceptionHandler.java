@@ -3,10 +3,7 @@ package kz.project.techway.config;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.ConstraintViolationException;
 import kz.project.techway.dto.output.ErrorResponse;
-import kz.project.techway.exceptions.ExternalApiException;
-import kz.project.techway.exceptions.PasswordsDoNotMatchException;
-import kz.project.techway.exceptions.TokenNotFoundException;
-import kz.project.techway.exceptions.UserNotFound;
+import kz.project.techway.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -73,6 +70,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
+
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         ErrorResponse response = new ErrorResponse("Server Error", ex.getMessage());
@@ -88,5 +87,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PasswordsDoNotMatchException.class)
     public ResponseEntity<String> handlePasswordsDoNotMatchException(PasswordsDoNotMatchException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConversionHistoryRetrievalException.class)
+    public ResponseEntity<String> handleConversionHistoryRetrievalException(ConversionHistoryRetrievalException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

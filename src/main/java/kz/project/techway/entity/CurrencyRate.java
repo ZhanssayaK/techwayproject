@@ -1,6 +1,7 @@
 package kz.project.techway.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class CurrencyRate extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime dateAt;
 
+    @NotNull(message = "Amount cannot be null")
     @Column(nullable = false)
     private BigDecimal value;
 

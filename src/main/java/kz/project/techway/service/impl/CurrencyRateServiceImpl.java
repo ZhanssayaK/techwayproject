@@ -34,7 +34,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static kz.project.techway.enums.CurrencyEnum.KZT;
 import static kz.project.techway.util.HalykBankApiUrl.BANK_API_URL;
@@ -49,8 +51,6 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
     private final RestTemplate restTemplate;
     private final CurrencyRateMapper currencyRateMapper;
     private final CurrencyRepository currencyRepository;
-    private final ConversionHistoryMapper conversionHistoryMapper;
-    private final CurrencyMapper currencyMapper;
 
     @Override
     public void updateCurrencyRates() {
@@ -182,4 +182,9 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
                 });
     }
 
+    @Override
+    public Map<LocalDateTime, List<CurrencyRateHistoryDTO>> getCurrencyHistoryGroupedByDate(String currencyType, String period) {
+        List<CurrencyRateHistoryDTO> history = getCurrencyHistory(currencyType, period);
+        return history.stream().collect(Collectors.groupingBy(CurrencyRateHistoryDTO::getDateAt));
+    }
 }
